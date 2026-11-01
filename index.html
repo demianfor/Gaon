@@ -758,7 +758,7 @@ var CATEGORIES = ['레이드', '아발론', '대난투'];
 // 아발론의 group 값은 "엘다리아 성문"처럼 "성 이름 + 타입"이 공백으로 붙은 형태를 그대로 쓴다.
 var GROUP_ORDER = {
   '레이드': ['월', '화', '수', '목', '금', '토(마법덱)', '토(물리덱)', '일'],
-  '아발론': ['엘다리아 성문', '엘다리아 보스', '엘아이아 성문', '엘아이아 보스'],
+  '아발론': ['엘다리아 성문', '엘다리아 보스', '엘아이아 성문', '엘아이아 보스', '틴타겔 성문', '틴타겔 보스'],
   '대난투': ['산양', '흑랑', '카우', '묘족']
 };
 // 레이드 그룹(요일)은 드롭다운에 "보스 이름(요일)"로 보여준다. 값(월/화/...)은 그대로 두고 표시만 바꾼다.
@@ -809,11 +809,19 @@ function groupLabel_(cat, g) {
 }
 
 // 카테고리 안의 그룹 목록을 정해진 순서대로 구한다 (실제 덱에 있는 그룹만).
+// 관리자는 예외: GROUP_ORDER에 정의는 돼 있지만 아직 덱이 하나도 없는 새 그룹(예: 새로 추가한
+// 성/보스)도 미리 보여줘서, 그 그룹을 선택한 뒤 "+ 새 덱 만들기"로 처음 덱을 만들 수 있게 한다.
+// (일반 길드원 화면에는 덱이 하나라도 있어야만 그 그룹이 보인다 — 빈 그룹이 보이면 혼란스러우니까.)
 function groupsInCategory_(cat) {
   var decksInCat = state.decks.filter(function (d) { return deckCategory_(d) === cat; });
   var present = {};
   decksInCat.forEach(function (d) { if (deckGroup_(d)) present[deckGroup_(d)] = true; });
   var order = GROUP_ORDER[cat] || [];
+  if (state.isAdmin) {
+    var outAdmin = order.slice();
+    Object.keys(present).forEach(function (g) { if (outAdmin.indexOf(g) === -1) outAdmin.push(g); });
+    return outAdmin;
+  }
   var out = order.filter(function (g) { return present[g]; });
   Object.keys(present).forEach(function (g) { if (out.indexOf(g) === -1) out.push(g); });
   return out;
